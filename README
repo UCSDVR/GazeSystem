@@ -1,0 +1,145 @@
+Author: Connor Smith
+Version: 3.0
+Date: 02/16/16
+Contact: connorsmithpc@gmail.com
+Project Title: Gaze System
+
+The Gaze System
+
+Package Description:
+
+  The Gaze System is a Unity package that allows developers to easily add
+  gaze-based input to first-person projects. This system was created primarily
+  for use with Virtual Reality, but can be used in any situation that requires
+  an action to occur when the user simply looks at something.
+
+  In short, this gaze system allows users to easily implement and customize
+  a pre-built gaze system. In this project, I use the term "gaze system"
+  to refer to a method of input, similar to that of a mouse click or a button
+  press, that is instead based entirely on what the user is looking at inside
+  of a game or Virtual Reality experience.
+
+  For example, if I want an object to change color once I look at it, this
+  gaze system will provide the functionality to easily activate the desired
+  object once a provided cursor is centered over it.
+
+  In Virtual Reality, the gaze system is an intuitive and simple method of
+  interaction that can allow for a great deal of flexibility without the
+  need for any hardware.
+
+Package Contents:
+
+  Cursor (Not to be modified)
+    
+    The cursor folder contains the animations and sprites associated with
+    the cursor timer animation. This folder should not be modified, for 
+    doing so will risk breaking dependencies.
+
+  Example
+
+    The example folder contains a pre-built scene that already implements
+    the gaze system, along with a sample of a script that implements the
+    Gazeable interface. Open the script to see and modify an existing sample
+    of how the gaze system may be used.
+
+  Prefab
+
+    The prefab is where the actual Gaze System is stored, and therefore
+    where the developer should retrieve the system to be placed in the scene.
+    This is just a single, pre-built version of the gaze system, with all
+    connections between objects already established. No assembly required.
+
+  Scripts
+
+    The scripts folder contains two very important scripts:
+
+      Gazeable (Interface)
+
+        The Gazeable interface is to be implemented by any object that
+        should activate when gazed at. This file contains the methods that
+        should be implemented and detailed comments explaining each method's
+        purpose and suggested implementation.
+
+      GazeSystem
+
+        The GazeSystem script contains all of the pre-built functionality for
+        the Gaze System. This is all handled automatically, so one does not
+        need to actually open the file, unless out of curiousity.
+
+How To Use:
+
+  Step 1: Download the "GazeSystem.unitypackage", this is the actual project.
+  
+  Step 2: Import the "GazeSystem.unitypackage" into your desired Unity scene.
+
+  Step 3: Navigate to Gaze System -> Prefab, and drop the "Gaze System" prefab
+          anywhere inside your scene hierarchy.
+
+  Step 4: Now you must configure the gaze system to your liking. Click on the
+          prefab in your hierarchy, and you'll notice that the
+          "Gaze System (Script)" component has several options:
+
+    Gaze Timer (bool)
+
+      If this option is enabled, then the cursor will show a circular timer
+      when an object is looked at, and the object will only activate once
+      that timer has completed. This exists so that objects don't just
+      immediatly activate when looked at, and helps ensure that the user
+      is intentionally activating an object. If disabled, there will be no
+      timer and the object will immediatly activate when gazed at.
+
+    Timer Duration (float) 
+
+      This value is the duration, in seconds, of the gaze timer. Setting this
+      value higher means an object will take longer to activate when it's
+      being looked at, and setting it lower means objects will activate faster.
+    
+    Rapid Activation (bool)
+
+      If this option is enabled, then the cursor will continuously call the
+      Activate() method (see Step 5) every frame while the object is being
+      looked at. If it's disabled, then the Activate() will only be called
+      once for each gaze on the object, and the user will have to look away
+      and look back at the object in order to activate it again.
+
+
+  Step 5: On any object that should activate when gazed at, you must attach
+          a script to that object that implements "Gazeable". The Gazeable
+          interface contains the following methods that must be written:
+
+    bool CheckGazeConditions();
+
+      CheckGazeConditions() should return a boolean value: true if all 
+      conditions to activate the object when looked at are met, and false if
+      there are still conditions that must be met before gaze activates the
+      object. This method will be automatically called from inside the gaze 
+      system. If the object SHOULD NOT activate when looked at yet, then this 
+      method should return false. If the object SHOULD activate when looked at, 
+      this method should return true.
+
+    void Activate();
+ 
+      When all conditions for activation have been met, the gaze system will
+      automatically call the Activate() method. If rapid activation is enabled,
+      this method will be called every frame until the user looks away. If
+      this method is not enabled (default), then it's only called once each
+      time the user looks.
+
+    void Deactivate();
+
+      After an object has been activated, this method will be called when the
+      user looks away. This method is always only called once.
+
+  Step 6 (Optional): To test the Gaze System, import the default Unity
+                     Utility package (Assets -> Import Package -> Utility)
+                     and attached the "SimpleMouseRotator" to the Main Camera
+                     in your scene. This will allow you to easily rotate
+                     the main camera using a mouse and simulate looking
+                     around.
+
+  Step 7: Celebrate! You have successfully used the Gaze System! For
+          any questions, contact Connor Smith at the contact email located
+          at the top of this file.
+
+
+Thanks for using the Gaze System!

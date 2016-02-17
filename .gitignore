@@ -9,6 +9,7 @@
 !/ProjectSettings/
 !.gitignore
 !*.unitypackage
+!/README
 
 # OS Stuff
 .DS_Store
