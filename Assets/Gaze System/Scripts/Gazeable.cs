@@ -31,4 +31,13 @@ public interface Gazeable {
    */
   void Activate();
 
+  /*
+   * Deactivate will be called whenever a Gazeable object
+   * has alerady been activated, and the very first time 
+   * the user looks away from that activated object. Whatever
+   * is written inside this method will therefore run when
+   * the object is looked away from after activation
+   */
+  void Deactivate();
+
 }

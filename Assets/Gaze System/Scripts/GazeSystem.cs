@@ -15,32 +15,44 @@ using System.Collections;
  */
 public class GazeSystem : MonoBehaviour {
 
-  //enables/disables the gaze cursor timer
+  //the gaze timer is a visual circular timer on the cursor that
+  //shows a user that they're activating an object, and how long
+  //they have until it's activated.
+  //defaults to enabled
   public bool gazeTimer = true;
-  public bool rapidActivation = false;
+
+  //the timer duration is the length. in seconds, of the gaze timer
   public float timerDuration = 2;
 
-  [HideInInspector]
-  public AnimationClip cursorAnimation; //actual cursor animation
+  //rapid activation repeatedly calls the Activate() method on gaze
+  //defaults to disabled
+  public bool rapidActivation = false;
 
-  [HideInInspector]
-  public Animator cursorAnimator; //cursor animation
+
+  //the actual cursor animation, for use in finding animation length
+  private AnimationClip cursorAnimation;
+
+  //the animator on the cursor, for use in resetting and starting cursor
+  private Animator cursorAnimator; //cursor animation
+
+  private Gazeable[] gazeScripts;
 
   //checks if animation was activated 
-  private bool alreadyActivated = false;
+  private bool cursorActivated = false;
 
   //for use with rapid activation, allows object to keep activating
-  private bool keepActivating = false;
+  private bool objectActivated = false;
 
   //how fast the cursor animation should play
   //value is calculated dynamically
   private float timerSpeed;
 
-  //boolean tag on the animator
-  private string animBool = "activateCursor";
-
   //Use this for initialization
   void Start () {
+
+    //sets cursor animator and animation variables
+    cursorAnimation = GazeStatics.cursorAnimation;
+    cursorAnimator = GazeStatics.cursorAnimator;
 
     //calculates speed of the timer based on duration in seconds
     timerSpeed = 1 / (timerDuration / cursorAnimation.length);
@@ -77,13 +89,13 @@ public class GazeSystem : MonoBehaviour {
   	if (Physics.Raycast(gazeRay, out interactableObject, Mathf.Infinity)) {
 
   	  //stores all gaze scripts on the target object into an array
-  	  Gazeable[] gazeScripts = (Gazeable[])interactableObject.collider.GetComponents<Gazeable>();
+  	  gazeScripts = (Gazeable[])interactableObject.collider.GetComponents<Gazeable>();
 
   	  //if there were any gaze scripts found
   	  if (gazeScripts.Length > 0) {
   	  
 	      //if cursor isn't active and gaze conditions are met
-	      if (!alreadyActivated && SearchGazeConditions(gazeScripts)) {
+	      if (!cursorActivated && SearchGazeConditions(gazeScripts)) {
 
 	        //if the gaze timer is enabled, activate it
 	        if (gazeTimer) {
@@ -96,19 +108,19 @@ public class GazeSystem : MonoBehaviour {
 	        //if the gaze timer is disabled, just activate object
 	        else {
 
-	          ActivateGazeObject(gazeScripts);
+            //if the object hasn't already been activated OR
+            //if rapid activation is enabled
+            if (!objectActivated || rapidActivation) {
 
-	          if (!rapidActivation) {
-
-	            alreadyActivated = true;
-
-	          }
+              //activates all gaze scripts on the object
+	            ActivateGazeObject(gazeScripts);
+            } 
 	        }
 	      }
 
 	      //if cursor isn't active and gaze conditions are not met
 	      //Usually occurs when cursor just finished and conditions change
-	      else if (!alreadyActivated && !SearchGazeConditions(gazeScripts)) {
+	      else if (!cursorActivated && !SearchGazeConditions(gazeScripts)) {
 
 	        //stop the cursor, cursor hasn't completed
 	        ResetCursor(false);
@@ -117,15 +129,18 @@ public class GazeSystem : MonoBehaviour {
 
 	      //if cursor is active and gaze conditions are not met
 	      //Usually occurs when gaze conditions suddenly change during cursor
-	      else if (alreadyActivated && !SearchGazeConditions(gazeScripts)) {
+	      else if (cursorActivated && !SearchGazeConditions(gazeScripts)) {
 
           //stop the cursor, cursor hasn't completed
 	        ResetCursor(false);
 
 	      }
-
+       
 	      //if the cursor has reached 95% completion (Allows for human error)
-	      if (keepActivating || cursorAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime > 0.95) {
+        // OR
+        //if the object has already been activated and rapid activation is enabled
+        if (cursorAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime > 0.95 ||
+           (objectActivated && rapidActivation)) {
 
 	        //Activates the gaze object
 	        ActivateGazeObject(gazeScripts);
@@ -136,14 +151,20 @@ public class GazeSystem : MonoBehaviour {
   	  //deactivate the cursor animation if the user looks at something else
   	  else {
 
+        //checks if the object needs to be deactivated
+        CheckDeactivate(gazeScripts);
+       
   	    //stop the cursor cursor hasn't completed
   	    ResetCursor(false);
-
+     
   	  }
   	}
   	
 	  //deactivate the cursor animation if the user looks at nothing
     else {
+
+      //checks if the object needs to be deactivated
+      CheckDeactivate(gazeScripts);
 
       //stop the cursor, cursor hasn't completed
       ResetCursor(false);
@@ -164,15 +185,10 @@ public class GazeSystem : MonoBehaviour {
     if (!cursorCompleted) {
 
       //cursor is no longer activated, can run again
-      alreadyActivated = false;
+      cursorActivated = false;
 
-    }
-
-    //if rapid activation is enabled, stop any rapid activating
-    if (rapidActivation && keepActivating) {
-
-      //stops rapid activating
-      keepActivating = false;
+      //user is no longer still looking at the object
+      objectActivated = false;
 
     }
 
@@ -230,12 +246,8 @@ public class GazeSystem : MonoBehaviour {
     //Resets the cursor if the object activates
     ResetCursor(true);
 
-    //if rapid activation is enabled, allow object to keep activating
-    if (rapidActivation && !keepActivating) {
-
-      keepActivating = true;
-
-    }
+    //object has now been activated
+    objectActivated = true;
 
     //checks every gaze script on the object
     foreach (Gazeable gazeObject in gazeScripts) {
@@ -251,15 +263,46 @@ public class GazeSystem : MonoBehaviour {
   }
 
   /*
+   * Deactivates an already activated object, by
+   * individually deactivating each gaze script
+   * on the object
+   */
+  void DeactivateGazeObject(Gazeable[] gazeScripts) {
+
+    //checks every gaze script on the object
+    foreach (Gazeable gazeObject in gazeScripts) {
+
+      //calls the deactivate method on the object
+      gazeObject.Deactivate();
+
+    }
+  }
+
+  /*
    * Begins the cursor timer animation
    */
   void ActivateCursor() {
      
-	//starts the animation
-	cursorAnimator.speed = timerSpeed;
+	  //starts the animation
+	  cursorAnimator.speed = timerSpeed;
+    
+  	//cursor has been activated, won't loop again
+	  cursorActivated = true;
 
-	//cursor has been activated, won't loop again
-	alreadyActivated = true;
+  }
 
+  /*
+   * Checks if the user was looking at an Activated object
+   * before looking away, and if so, deactivate the object.
+   */
+  void CheckDeactivate(Gazeable[] gazeScripts) {
+
+    //if the object has already been activated
+    if (objectActivated) {
+
+      //deactivate the object
+      DeactivateGazeObject(gazeScripts);
+
+    }
   }
 }
