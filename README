@@ -132,7 +132,7 @@ How To Use:
 
   Step 6 (Optional): To test the Gaze System, import the default Unity
                      Utility package (Assets -> Import Package -> Utility)
-                     and attached the "SimpleMouseRotator" to the Main Camera
+                     and attach the "SimpleMouseRotator" to the Main Camera
                      in your scene. This will allow you to easily rotate
                      the main camera using a mouse and simulate looking
                      around.
