@@ -28,6 +28,8 @@ public class GazeSystem : MonoBehaviour {
   //defaults to disabled
   public bool rapidActivation = false;
 
+  //used for debugging
+  public bool debugMode = false;
 
   //the actual cursor animation, for use in finding animation length
   private AnimationClip cursorAnimation;
@@ -35,6 +37,7 @@ public class GazeSystem : MonoBehaviour {
   //the animator on the cursor, for use in resetting and starting cursor
   private Animator cursorAnimator; //cursor animation
 
+  //array of scripts on the current gazeable object
   private Gazeable[] gazeScripts;
 
   //checks if animation was activated 
@@ -47,12 +50,21 @@ public class GazeSystem : MonoBehaviour {
   //value is calculated dynamically
   private float timerSpeed;
 
+  private GazeDebug debugText;
+
   //Use this for initialization
   void Start () {
 
     //sets cursor animator and animation variables
     cursorAnimation = GazeStatics.cursorAnimation;
     cursorAnimator = GazeStatics.cursorAnimator;
+
+    if (debugMode) {
+
+      debugText = GazeStatics.debugText;
+      debugText.gameObject.SetActive(true);
+
+    }
 
     //calculates speed of the timer based on duration in seconds
     timerSpeed = 1 / (timerDuration / cursorAnimation.length);
@@ -82,20 +94,45 @@ public class GazeSystem : MonoBehaviour {
     //creates the ray to use for raycasting, goes forward
     Ray gazeRay = new Ray (this.transform.position, this.transform.forward);
 
+
+    if (debugMode) {
+
+      Debug.DrawRay(this.transform.position, this.transform.forward);
+
+    }
+
     //variable to store the object the raycast hits
-  	RaycastHit interactableObject;
+  	RaycastHit gazeObject;
 
   	//performs Raycast infinitely forward, stores hit objects into interactableObject
-  	if (Physics.Raycast(gazeRay, out interactableObject, Mathf.Infinity)) {
+  	if (Physics.Raycast(gazeRay, out gazeObject, Mathf.Infinity)) {
+
+      if (debugMode) {
+
+        debugText.SetGazeObject(gazeObject.collider.gameObject);
+
+      }
 
   	  //stores all gaze scripts on the target object into an array
-  	  gazeScripts = (Gazeable[])interactableObject.collider.GetComponents<Gazeable>();
+  	  gazeScripts = (Gazeable[])gazeObject.collider.GetComponents<Gazeable>();
 
   	  //if there were any gaze scripts found
   	  if (gazeScripts.Length > 0) {
+
+        if (debugMode) {
+
+          debugText.SetIsGazeable(true);
+
+        }
   	  
 	      //if cursor isn't active and gaze conditions are met
 	      if (!cursorActivated && SearchGazeConditions(gazeScripts)) {
+
+          if (debugMode) {
+
+            debugText.SetGazeConditionStatus(true);
+
+          }
 
 	        //if the gaze timer is enabled, activate it
 	        if (gazeTimer) {
@@ -148,8 +185,14 @@ public class GazeSystem : MonoBehaviour {
 	      }
 	    }
   	  
-  	  //deactivate the cursor animation if the user looks at something else
+  	  //deactivate the cursor animation if the user looks at something not Gazeable
   	  else {
+
+        if (debugMode) {
+
+          debugText.SetIsGazeable(false);
+
+        }
 
         //checks if the object needs to be deactivated
         CheckDeactivate(gazeScripts);
@@ -162,6 +205,12 @@ public class GazeSystem : MonoBehaviour {
   	
 	  //deactivate the cursor animation if the user looks at nothing
     else {
+
+      if (debugMode) {
+
+        debugText.SetGazeObject(null);
+
+      }
 
       //checks if the object needs to be deactivated
       CheckDeactivate(gazeScripts);
