@@ -65,6 +65,11 @@ Package Contents:
         The GazeSystem script contains all of the pre-built functionality for
         the Gaze System. This is all handled automatically, so one does not
         need to actually open the file, unless out of curiousity.
+        
+      GazeDebug
+      
+        The GazeDebug script handles displaying the debugMode text, and is used
+        for nothing else.
 
 How To Use:
 
@@ -101,6 +106,14 @@ How To Use:
       looked at. If it's disabled, then the Activate() will only be called
       once for each gaze on the object, and the user will have to look away
       and look back at the object in order to activate it again.
+      
+    Debug Mode (bool)
+    
+      Enabling debug mode will display text telling you what the user is
+      currently looking at, whether or not that object implements
+      Gazeable, and if the gaze conditions on that object are met. In
+      scene view, a visible ray can also be scene coming from the
+      gaze system.
 
 
   Step 5: On any object that should activate when gazed at, you must attach
