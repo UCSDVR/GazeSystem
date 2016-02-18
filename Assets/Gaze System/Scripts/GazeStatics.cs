@@ -19,8 +19,12 @@ public class GazeStatics : MonoBehaviour {
   //the cursor animation object, to be dragged in
   public AnimationClip cursorAnimationObj;
 
+  public GazeDebug debugTextObj;
+
   //static cursor Animator for use with Gaze System
   public static Animator cursorAnimator;
+
+  public static GazeDebug debugText;
 
   //static cursor Animation for use with Gaze System
   public static AnimationClip cursorAnimation;
@@ -31,6 +35,7 @@ public class GazeStatics : MonoBehaviour {
     //sets static variables based on dragged values
     cursorAnimator = cursorAnimatorObj;
     cursorAnimation = cursorAnimationObj;
+    debugText = debugTextObj;
 	
 	}
 	
